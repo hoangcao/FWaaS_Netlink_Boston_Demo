@@ -1,0 +1,43 @@
+diff --git a/neutron_fwaas/extensions/firewall.py b/neutron_fwaas/extensions/firewall.py
+index 2edc7b9..c7e5dc6 100644
+--- a/neutron_fwaas/extensions/firewall.py
++++ b/neutron_fwaas/extensions/firewall.py
+@@ -370,7 +370,7 @@ firewall_quota_opts = [
+                help=_('Number of firewall policies allowed per tenant. '
+                       'A negative value means unlimited.')),
+     cfg.IntOpt('quota_firewall_rule',
+-               default=100,
++               default=-1,
+                help=_('Number of firewall rules allowed per tenant. '
+                       'A negative value means unlimited.')),
+ ]
+diff --git a/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py b/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py
+index 61f1b28..1ad7979 100644
+--- a/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py
++++ b/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py
+@@ -13,6 +13,8 @@
+ #    License for the specific language governing permissions and limitations
+ #    under the License.
+ 
++import time
++
+ from neutron.agent.linux import iptables_manager
+ from neutron.agent.linux import utils as linux_utils
+ from oslo_log import log as logging
+@@ -292,6 +294,7 @@ class IptablesFwaasDriver(fwaas_base.FwaasDriverBase):
+                                            apply_list, pre_firewall, firewall):
+         """Remove conntrack when updated firewall"""
+         router_list = list(set(apply_list))
++        begin = time.time()
+         for router_info in router_list:
+             ipt_if_prefix_list = self._get_ipt_mgrs_with_if_prefix(
+                 agent_mode, router_info)
+@@ -305,6 +308,8 @@ class IptablesFwaasDriver(fwaas_base.FwaasDriverBase):
+                 for rule in removed_conntrack_rules_list:
+                     cmd = self._get_conntrack_cmd_from_rule(ipt_mgr, rule)
+                     self._remove_conntrack_by_cmd(cmd)
++        end = time.time()
++        LOG.debug('Rules: %s, Time: %s', str(len(rules)), str(end-begin))
+ 
+     def _get_conntrack_filter_from_rule(self, rule):
+         """Get conntrack filter from rule.
