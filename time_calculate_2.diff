@@ -1,0 +1,45 @@
+diff --git a/neutron_fwaas/extensions/firewall.py b/neutron_fwaas/extensions/firewall.py
+index 10f8f0d..7de2f19 100644
+--- a/neutron_fwaas/extensions/firewall.py
++++ b/neutron_fwaas/extensions/firewall.py
+@@ -369,7 +369,7 @@ firewall_quota_opts = [
+                help=_('Number of firewall policies allowed per tenant. '
+                       'A negative value means unlimited.')),
+     cfg.IntOpt('quota_firewall_rule',
+-               default=100,
++               default=-1,
+                help=_('Number of firewall rules allowed per tenant. '
+                       'A negative value means unlimited.')),
+ ]
+diff --git a/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py b/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py
+index 16cb5f3..df6d6a9 100644
+--- a/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py
++++ b/neutron_fwaas/services/firewall/drivers/linux/iptables_fwaas.py
+@@ -17,6 +17,8 @@ from oslo_config import cfg
+ from oslo_log import log as logging
+ from oslo_utils import excutils
+ 
++import time
++
+ from neutron.agent.linux import iptables_manager
+ from neutron.common import utils
+ from neutron_fwaas._i18n import _LE
+@@ -294,6 +296,7 @@ class IptablesFwaasDriver(fwaas_base.FwaasDriverBase):
+                                            apply_list, pre_firewall, firewall):
+         """Remove conntrack when updated firewall"""
+         router_list = list(set(apply_list))
++        begin = time.time()
+         for router_info in router_list:
+             ipt_if_prefix_list = self._get_ipt_mgrs_with_if_prefix(
+                 agent_mode, router_info)
+@@ -306,6 +309,10 @@ class IptablesFwaasDriver(fwaas_base.FwaasDriverBase):
+                 removed_conntrack_rules_list = ch_rules + i_rules + r_rules
+                 self.conntrack.delete_entries(removed_conntrack_rules_list,
+                                               ipt_mgr.namespace)
++        end = time.time()
++        LOG.debug('Rules: %s, Time: %s',
++                  str(len(removed_conntrack_rules_list)),
++                  str(end - begin))
+ 
+     def _remove_default_chains(self, nsid):
+         """Remove fwaas default policy chain."""
