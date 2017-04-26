@@ -81,5 +81,4 @@ for case in cases:
     # Create a firewall policy with all rules
     body = {'firewall_policy': {'firewall_rules': fr_ids,
                                 'name': 'fp'}}
-    fp = neutron.create_firewall_policy(body)
     neutron.update_firewall_policy(fp_id, body)
