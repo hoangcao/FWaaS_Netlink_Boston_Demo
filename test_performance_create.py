@@ -59,7 +59,7 @@ def create_conntrack_entries(namespace, number):
                              '--state', 'ESTABLISHED',
                              '--timeout', '3600'])
 
-cases = [100]
+cases = [500]
 
 # Listing the firewall rules
 fr_ids = []
