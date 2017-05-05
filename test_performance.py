@@ -62,7 +62,7 @@ def create_conntrack_entries(namespace, number):
 # Test cases:
 # cases = [5000, 10000, 15000, 20000]
 
-cases = [1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 15000, 20000]
+cases = [500]
 
 # Listing the firewall rules
 fr_ids = []
@@ -80,7 +80,9 @@ for case in cases:
     # Create a firewall policy with all rules
     body = {'firewall_policy': {'firewall_rules': fr_ids,
                                 'name': 'fp'}}
+    print "Step2: Firewall Policy Creating"
     fp = neutron.create_firewall_policy(body)
+    print "Step2: Firewall Policy Created"
     fp_id = fp['firewall_policy']['id']
 
     # Create a firewall with the firewall policy above
@@ -89,6 +91,7 @@ for case in cases:
                          'firewall_policy_id': fp_id,
                          'router_ids': [router_id]}}
 
+    print "Step3: Firewall Creating"
     fw = neutron.create_firewall(body)
 
     # Verify that the firewall already become ACTIVE
@@ -96,27 +99,31 @@ for case in cases:
     state = neutron.show_firewall(fw_id)['firewall']['status']
 
     while state == 'PENDING_CREATE':
-        time.sleep(10)
+        time.sleep(5)
         state = neutron.show_firewall(fw_id)['firewall']['status']
-    time.sleep(10)
-
+    time.sleep(5)
     # Create conntrack entries to be deleted for performance tests
     # subprocess.call(['sudo', 'ip', 'netns', 'exec', router_id, 'python',
     #                  '/create_entry_conntrack.py', str(case)])
 
     create_conntrack_entries(namespace=namespace, number=case)
+    print "Step3: Firewall Created"
 
     # Update the firewall policy with no rule.
     # All the rules in the firewall policy will be deleted
     body = {'firewall_policy': {'firewall_rules': []}}
+    print "Step4: Firewall Policy Updating"
     neutron.update_firewall_policy(fp_id, body)
 
     # Clean the firewall and firewall policy
     state = neutron.show_firewall(fw_id)['firewall']['status']
     while state == 'PENDING_UPDATE':
-        time.sleep(10)
+        time.sleep(5)
         state = neutron.show_firewall(fw_id)['firewall']['status']
+    print "Step4: Firewall Policy Updated"
+    print "Step5: Deleting Firewall and Firewall Policy"
     neutron.delete_firewall(fw_id)
     time.sleep(5)
     neutron.delete_firewall_policy(fp_id)
+    print "Step5: Deleted Firewall and Firewall Policy"
     fr_ids = []
