@@ -99,9 +99,9 @@ for case in cases:
     state = neutron.show_firewall(fw_id)['firewall']['status']
 
     while state == 'PENDING_CREATE':
-        time.sleep(5)
+        time.sleep(10)
         state = neutron.show_firewall(fw_id)['firewall']['status']
-    time.sleep(5)
+    time.sleep(10)
     # Create conntrack entries to be deleted for performance tests
     # subprocess.call(['sudo', 'ip', 'netns', 'exec', router_id, 'python',
     #                  '/create_entry_conntrack.py', str(case)])
@@ -118,7 +118,7 @@ for case in cases:
     # Clean the firewall and firewall policy
     state = neutron.show_firewall(fw_id)['firewall']['status']
     while state == 'PENDING_UPDATE':
-        time.sleep(5)
+        time.sleep(10)
         state = neutron.show_firewall(fw_id)['firewall']['status']
     print "Step4: Firewall Policy Updated"
     print "Step5: Deleting Firewall and Firewall Policy"
