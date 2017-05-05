@@ -62,7 +62,7 @@ def create_conntrack_entries(namespace, number):
 # Test cases:
 # cases = [5000, 10000, 15000, 20000]
 
-cases = [100]
+cases = [500]
 
 # Listing the firewall rules
 fr_ids = []
